@@ -5,11 +5,15 @@ from werkzeug.security import generate_password_hash
 
 from routes.auth_routes import auth
 from routes.dashboard_routes import dashboard
+from routes.admin_routes import admin
+from routes.doctor_routes import doctor
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.register_blueprint(auth)
+app.register_blueprint(admin)
 app.register_blueprint(dashboard)
+app.register_blueprint(doctor)
 
 db.init_app(app)
 
