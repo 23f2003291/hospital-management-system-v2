@@ -9,3 +9,4 @@ instance/
 redis_dump.rdb
 celerybeat-schedule
 node_modules/
+.csv

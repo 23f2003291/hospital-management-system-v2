@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from models import db, Doctor, Patient, Appointment, Treatment
 
+
 patient = Blueprint("patient", __name__)
 
 
@@ -152,3 +153,12 @@ def update_profile(patient_id):
     db.session.commit()
 
     return jsonify({"message": "Profile updated"})
+
+@patient.route("/export-csv")
+def export_csv_route():
+
+    from tasks import export_csv   # import inside function
+
+    export_csv.delay()
+
+    return {"message": "CSV export started"}
