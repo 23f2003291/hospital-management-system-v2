@@ -4,11 +4,12 @@ from models import db, User
 from werkzeug.security import generate_password_hash
 
 from routes.auth_routes import auth
-
+from routes.dashboard_routes import dashboard
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.register_blueprint(auth)
+app.register_blueprint(dashboard)
 
 db.init_app(app)
 
