@@ -36,6 +36,33 @@ def doctor_dashboard(doctor_id):
         "appointments": upcoming
     })
 
-@dashboard.route("/patient/dashboard")
-def patient_dashboard():
-    return jsonify({"message": "Patient Dashboard"})
+@dashboard.route("/patient/dashboard/<int:patient_id>")
+def patient_dashboard(patient_id):
+
+    appointments = Appointment.query.filter_by(patient_id=patient_id).all()
+
+    upcoming = []
+    past = []
+
+    for appt in appointments:
+
+        doctor = Doctor.query.get(appt.doctor_id)
+
+        data = {
+            "appointment_id": appt.id,
+            "doctor_name": doctor.name if doctor else None,
+            "specialization": doctor.specialization if doctor else None,
+            "date": appt.date,
+            "time": appt.time,
+            "status": appt.status
+        }
+
+        if appt.status == "booked":
+            upcoming.append(data)
+        else:
+            past.append(data)
+
+    return jsonify({
+        "upcoming_appointments": upcoming,
+        "past_appointments": past
+    })
