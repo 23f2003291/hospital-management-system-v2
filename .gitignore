@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+.env
+instance/
+.cache/
+redis_dump.rdb
+celerybeat-schedule
+node_modules/
