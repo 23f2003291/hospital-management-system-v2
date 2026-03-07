@@ -45,6 +45,17 @@ def book_appointment():
     date = data["date"]
     time = data["time"]
 
+    # Check if doctor already has appointment at this time
+    existing = Appointment.query.filter_by(
+        doctor_id=doctor_id,
+        date=date,
+        time=time,
+        status="booked"
+    ).first()
+
+    if existing:
+        return jsonify({"message": "Doctor already booked for this time"}), 400
+
     appointment = Appointment(
         doctor_id=doctor_id,
         patient_id=patient_id,
