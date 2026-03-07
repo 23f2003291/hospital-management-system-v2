@@ -3,8 +3,12 @@ from config import Config
 from models import db, User
 from werkzeug.security import generate_password_hash
 
+from routes.auth_routes import auth
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
+app.register_blueprint(auth)
 
 db.init_app(app)
 
