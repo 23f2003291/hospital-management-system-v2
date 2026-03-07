@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from models import db, Doctor, Patient, Appointment, Treatment
-
+from redis_cache import get_cache, set_cache
 
 patient = Blueprint("patient", __name__)
 
@@ -11,6 +11,13 @@ def view_doctors():
 
     name = request.args.get("name")
     specialization = request.args.get("specialization")
+
+    cache_key = f"doctor_search_{name}_{specialization}"
+
+    cached_data = get_cache(cache_key)
+
+    if cached_data:
+        return jsonify(cached_data)
 
     query = Doctor.query
 
@@ -32,8 +39,9 @@ def view_doctors():
             "availability": d.availability
         })
 
-    return jsonify(result)
+    set_cache(cache_key, result, expiry=60)
 
+    return jsonify(result)
 
 # Book appointment
 @patient.route("/patient/book_appointment", methods=["POST"])
@@ -117,6 +125,13 @@ def upcoming_appointments(patient_id):
 @patient.route("/patient/history/<int:patient_id>", methods=["GET"])
 def patient_history(patient_id):
 
+    cache_key = f"patient_history_{patient_id}"
+
+    cached_data = get_cache(cache_key)
+
+    if cached_data:
+        return jsonify(cached_data)
+
     appointments = Appointment.query.filter_by(patient_id=patient_id).all()
 
     history = []
@@ -132,6 +147,8 @@ def patient_history(patient_id):
             "diagnosis": treatment.diagnosis if treatment else None,
             "prescription": treatment.prescription if treatment else None
         })
+    
+    set_cache(cache_key, history, expiry=60)
 
     return jsonify(history)
 
