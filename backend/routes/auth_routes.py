@@ -102,6 +102,7 @@ def login():
     return jsonify({
         "message": "Login successful",
         "role": user.role,
+        "user_id": user.id,
         "redirect": dashboard
     })
 

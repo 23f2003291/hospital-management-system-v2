@@ -2,6 +2,7 @@ from flask import Flask
 from config import Config
 from models import db, User
 from werkzeug.security import generate_password_hash
+from flask_cors import CORS
 
 from routes.auth_routes import auth
 from routes.dashboard_routes import dashboard
@@ -16,6 +17,8 @@ app.register_blueprint(admin)
 app.register_blueprint(dashboard)
 app.register_blueprint(doctor)
 app.register_blueprint(patient)
+
+CORS(app)
 
 db.init_app(app)
 

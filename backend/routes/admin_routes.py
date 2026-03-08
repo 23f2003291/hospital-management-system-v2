@@ -174,17 +174,20 @@ def view_appointments():
     result = []
 
     for a in appointments:
+
+        doctor = Doctor.query.get(a.doctor_id)
+        patient = Patient.query.get(a.patient_id)
+
         result.append({
             "appointment_id": a.id,
-            "doctor_id": a.doctor_id,
-            "patient_id": a.patient_id,
+            "doctor_name": doctor.name if doctor else None,
+            "patient_name": patient.name if patient else None,
             "date": a.date,
             "time": a.time,
             "status": a.status
         })
 
     return jsonify(result)
-
 # -------------------------
 # View Patient Treatment History 
 # -------------------------

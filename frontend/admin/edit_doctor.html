@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Edit Doctor</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="app">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<div class="container-fluid">
+
+<a class="navbar-brand">Hospital Management System</a>
+
+<ul class="navbar-nav ms-auto">
+
+<li class="nav-item">
+<a class="nav-link" href="admin.html">Dashboard</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="add_doctor.html">Add Doctor</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="#" @click="logout">Logout</a>
+</li>
+
+</ul>
+
+</div>
+</nav>
+
+
+<div class="container mt-5">
+
+<h2>Edit Doctor</h2>
+
+<div class="card p-4 shadow">
+
+<div class="mb-3">
+<label>Name</label>
+<input class="form-control" v-model="doctor.name">
+</div>
+
+<div class="mb-3">
+<label>Specialization</label>
+<input class="form-control" v-model="doctor.specialization">
+</div>
+
+<button class="btn btn-success" @click="updateDoctor">
+Update Doctor
+</button>
+
+<div v-if="message" class="alert alert-success mt-3">
+{{message}}
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+new Vue({
+
+el:"#app",
+
+data:{
+
+role: localStorage.getItem("role"),
+
+doctor_id:null,
+
+doctor:{
+name:"",
+specialization:"",
+availability:""
+},
+
+message:""
+
+},
+
+methods:{
+
+
+getDoctor(){
+
+axios.get("http://127.0.0.1:5000/admin/search_doctors")
+
+.then(res=>{
+
+let doctors = res.data
+
+let d = doctors.find(doc => doc.id == this.doctor_id)
+
+if(d){
+this.doctor.name = d.name
+this.doctor.specialization = d.specialization
+this.doctor.availability = d.availability
+}
+
+})
+
+},
+
+
+updateDoctor(){
+
+axios.put(
+"http://127.0.0.1:5000/admin/update_doctor/"+this.doctor_id,
+this.doctor
+)
+
+.then(res=>{
+this.message="Doctor updated successfully"
+})
+
+},
+
+
+logout(){
+
+localStorage.clear()
+window.location="../index.html"
+
+}
+
+},
+
+mounted(){
+
+if(this.role!="admin"){
+window.location="../index.html"
+}
+
+let params = new URLSearchParams(window.location.search)
+
+this.doctor_id = params.get("doctor_id")
+
+this.getDoctor()
+
+}
+
+})
+
+</script>
+
+</body>
+</html>
