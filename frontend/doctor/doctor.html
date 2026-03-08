@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Doctor Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="app">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<div class="container-fluid">
+
+<a class="navbar-brand">Hospital Management System</a>
+
+<ul class="navbar-nav ms-auto">
+
+<li class="nav-item">
+<a class="nav-link" href="doctor.html">Dashboard</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="availability.html">Availability</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="#" @click="logout">Logout</a>
+</li>
+
+</ul>
+
+</div>
+</nav>
+
+
+<div class="container mt-4">
+
+<h2>Doctor Dashboard</h2>
+
+
+<!-- Upcoming Appointments -->
+<div class="card p-3 mb-4">
+
+<h4>Upcoming Appointments</h4>
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+<th>Appointment ID</th>
+<th>Patient Name</th>
+<th>Date</th>
+<th>Time</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr v-for="a in appointments">
+
+<td>{{a.appointment_id}}</td>
+<td>{{a.patient_name}}</td>
+<td>{{a.date}}</td>
+<td>{{a.time}}</td>
+<td>{{a.status}}</td>
+
+<td>
+
+<button class="btn btn-primary btn-sm"
+@click="updateHistory(a.appointment_id)"
+:disabled="a.status!='booked'">
+Update
+</button>
+
+<button class="btn btn-success btn-sm"
+@click="completeAppointment(a.appointment_id)"
+:disabled="a.status!='booked'">
+Mark Complete
+</button>
+
+<button class="btn btn-danger btn-sm"
+@click="cancelAppointment(a.appointment_id)"
+:disabled="a.status!='booked'">
+Cancel
+</button>
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- Assigned Patients -->
+<div class="card p-3">
+
+<h4>Assigned Patients</h4>
+
+<table class="table">
+
+<tr v-for="p in patients">
+
+<td>{{p.name}}</td>
+
+<td>
+
+<button class="btn btn-primary btn-sm"
+@click="viewHistory(p.patient_id)">
+View
+</button>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+new Vue({
+
+el:"#app",
+
+data:{
+
+role: localStorage.getItem("role"),
+
+doctor_id: localStorage.getItem("doctor_id"),
+
+appointments:[],
+patients:[]
+
+},
+
+methods:{
+
+
+loadAppointments(){
+
+axios.get(
+"http://127.0.0.1:5000/doctor/appointments/"+this.doctor_id
+)
+
+.then(res=>{
+this.appointments = res.data
+})
+
+},
+
+
+loadPatients(){
+
+axios.get(
+"http://127.0.0.1:5000/doctor/patients/"+this.doctor_id
+)
+
+.then(res=>{
+this.patients = res.data
+})
+
+},
+
+
+cancelAppointment(id){
+
+axios.post(
+"http://127.0.0.1:5000/doctor/cancel_appointment",
+{ appointment_id:id }
+)
+
+.then(()=>{
+this.loadAppointments()
+})
+
+},
+
+
+completeAppointment(id){
+
+window.location="update_patient_history.html?appointment_id="+id
+
+},
+
+
+updateHistory(id){
+
+window.location="update_patient_history.html?appointment_id="+id
+
+},
+
+
+viewHistory(id){
+
+window.location="patient_history.html?patient_id="+id
+
+},
+
+
+logout(){
+
+localStorage.clear()
+window.location="../index.html"
+
+}
+
+},
+
+mounted(){
+
+if(this.role!="doctor"){
+window.location="../index.html"
+}
+
+this.loadAppointments()
+this.loadPatients()
+
+}
+
+})
+
+</script>
+
+</body>
+</html>

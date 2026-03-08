@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, User, Patient
+from models import db, User, Patient, Doctor
 from werkzeug.security import generate_password_hash, check_password_hash
 
 auth = Blueprint('auth', __name__)
@@ -90,20 +90,37 @@ def login():
         return jsonify({"message": "Invalid credentials"}), 401
 
     # Role-based redirect
+     
     if user.role == "admin":
-        dashboard = "/admin/dashboard"
-
-    elif user.role == "doctor":
-        dashboard = "/doctor/dashboard"
-
-    else:
-        dashboard = "/patient/dashboard"
-
-    return jsonify({
+        return jsonify({
         "message": "Login successful",
         "role": user.role,
         "user_id": user.id,
-        "redirect": dashboard
+        "redirect": "/admin/dashboard"
+    })
+    
+    elif user.role == "doctor":
+        
+        doctor = Doctor.query.filter_by(user_id=user.id).first()
+        
+        return jsonify({
+        "message": "Login successful",
+        "role": user.role,
+        "user_id": user.id,
+        "doctor_id": doctor.id if doctor else None,
+        "redirect": "/doctor/dashboard"
+    })
+    
+    else:  # patient
+        
+        patient = Patient.query.filter_by(user_id=user.id).first()
+        
+        return jsonify({
+        "message": "Login successful",
+        "role": user.role,
+        "user_id": user.id,
+        "patient_id": patient.id if patient else None,
+        "redirect": "/patient/dashboard"
     })
 
 

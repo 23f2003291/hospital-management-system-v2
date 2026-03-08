@@ -12,18 +12,22 @@ doctor = Blueprint("doctor", __name__)
 def doctor_appointments(doctor_id):
 
     appointments = Appointment.query.filter_by(doctor_id=doctor_id).all()
-
+    
     result = []
-
+    
     for appt in appointments:
+        
+        patient = Patient.query.get(appt.patient_id)
+        
         result.append({
-            "appointment_id": appt.id,
-            "patient_id": appt.patient_id,
-            "date": appt.date,
-            "time": appt.time,
-            "status": appt.status
-        })
-
+        "appointment_id": appt.id,
+        "patient_id": appt.patient_id,
+        "patient_name": patient.name if patient else None,
+        "date": appt.date,
+        "time": appt.time,
+        "status": appt.status
+    })
+        
     return jsonify(result)
 
 

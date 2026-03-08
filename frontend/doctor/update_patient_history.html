@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Update Patient History</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="app">
+
+<div class="container mt-5">
+
+<h3>Update Patient History</h3>
+
+<div class="card p-4">
+
+<div class="mb-3">
+<label>Diagnosis</label>
+<input class="form-control" v-model="diagnosis">
+</div>
+
+<div class="mb-3">
+<label>Prescription</label>
+<input class="form-control" v-model="prescription">
+</div>
+
+<div class="mb-3">
+<label>Notes</label>
+<textarea class="form-control" v-model="notes"></textarea>
+</div>
+
+<button class="btn btn-success" @click="complete">
+Save
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+new Vue({
+
+el:"#app",
+
+data:{
+
+appointment_id:null,
+
+diagnosis:"",
+prescription:"",
+notes:""
+
+},
+
+methods:{
+
+
+complete(){
+
+axios.post(
+"http://127.0.0.1:5000/doctor/complete",
+{
+appointment_id:this.appointment_id,
+diagnosis:this.diagnosis,
+prescription:this.prescription,
+notes:this.notes
+}
+)
+
+.then(()=>{
+alert("Treatment saved")
+window.location="doctor.html"
+})
+
+}
+
+},
+
+mounted(){
+
+let params = new URLSearchParams(window.location.search)
+
+this.appointment_id = params.get("appointment_id")
+
+}
+
+})
+
+</script>
+
+</body>
+</html>
