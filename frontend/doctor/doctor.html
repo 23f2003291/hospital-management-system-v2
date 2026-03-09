@@ -186,7 +186,7 @@ this.patients = res.data
 
 
 cancelAppointment(id){
-
+if(confirm("Are you sure you want to cancel the appointment?")){
 axios.post(
 "http://127.0.0.1:5000/doctor/cancel_appointment",
 { appointment_id:id }
@@ -195,7 +195,7 @@ axios.post(
 .then(()=>{
 this.loadAppointments()
 })
-
+}
 },
 
 

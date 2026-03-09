@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
-from models import db, Doctor, Patient, Appointment, Treatment
+from models import db, Doctor, Patient, Appointment, Treatment, Department
 from redis_cache import get_cache, set_cache
+from datetime import datetime
 
 patient = Blueprint("patient", __name__)
 
@@ -51,8 +52,16 @@ def book_appointment():
 
     doctor_id = data["doctor_id"]
     patient_id = data["patient_id"]
+    
     date = data["date"]
     time = data["time"]
+    
+    # Prevent booking past dates
+    today = datetime.today().date()
+    appointment_date = datetime.strptime(date, "%Y-%m-%d").date()
+    
+    if appointment_date < today:
+        return jsonify({"message": "Cannot book appointment for past dates"}), 400
 
     # Check if doctor already has appointment at this time
     existing = Appointment.query.filter_by(
@@ -110,12 +119,14 @@ def upcoming_appointments(patient_id):
     result = []
 
     for appt in appointments:
-        result.append({
-            "appointment_id": appt.id,
-            "doctor_id": appt.doctor_id,
-            "date": appt.date,
-            "time": appt.time,
-            "status": appt.status
+        doctor = Doctor.query.get(appt.doctor_id)
+        
+        result.append({ 
+        "appointment_id": appt.id,
+        "doctor": doctor.name if doctor else None,
+        "date": appt.date,
+        "time": appt.time,
+        "status": appt.status
         })
 
     return jsonify(result)
@@ -137,11 +148,13 @@ def patient_history(patient_id):
     history = []
 
     for appt in appointments:
-
+        
+        doctor = Doctor.query.get(appt.doctor_id)
         treatment = Treatment.query.filter_by(appointment_id=appt.id).first()
 
         history.append({
             "appointment_id": appt.id,
+            "doctor": doctor.name if doctor else None,
             "date": appt.date,
             "status": appt.status,
             "diagnosis": treatment.diagnosis if treatment else None,
@@ -171,11 +184,94 @@ def update_profile(patient_id):
 
     return jsonify({"message": "Profile updated"})
 
-@patient.route("/export-csv")
-def export_csv_route():
+from flask import send_file
+import pandas as pd
 
-    from tasks import export_csv   # import inside function
+@patient.route("/export-csv/<int:patient_id>")
+def export_csv_route(patient_id):
 
-    export_csv.delay()
+    appointments = Appointment.query.filter_by(patient_id=patient_id).all()
 
-    return {"message": "CSV export started"}
+    data = []
+
+    for appt in appointments:
+
+        doctor = Doctor.query.get(appt.doctor_id)
+        treatment = Treatment.query.filter_by(appointment_id=appt.id).first()
+
+        data.append({
+            "Doctor": doctor.name if doctor else None,
+            "Date": appt.date,
+            "Status": appt.status,
+            "Diagnosis": treatment.diagnosis if treatment else None,
+            "Prescription": treatment.prescription if treatment else None
+        })
+
+    df = pd.DataFrame(data)
+
+    file_name = f"patient_{patient_id}_history.csv"
+
+    df.to_csv(file_name, index=False)
+
+    return send_file(file_name, as_attachment=True)
+
+# -------------------------
+# Get Departments
+# -------------------------
+
+@patient.route("/patient/departments", methods=["GET"])
+def get_departments():
+
+    departments = Department.query.all()
+
+    result = []
+
+    for d in departments:
+        result.append({
+            "id": d.id,
+            "name": d.name
+        })
+
+    return jsonify(result)
+
+# -------------------------
+# Doctors by Department
+# -------------------------
+
+@patient.route("/patient/doctors/<int:department_id>", methods=["GET"])
+def doctors_by_department(department_id):
+
+    doctors = Doctor.query.filter_by(department_id=department_id).all()
+
+    result = []
+
+    for d in doctors:
+        result.append({
+            "doctor_id": d.id,
+            "name": d.name,
+            "specialization": d.specialization,
+            "availability": d.availability
+        })
+
+    return jsonify(result)
+
+# -------------------------
+# Get Patient Profile
+# -------------------------
+
+@patient.route("/patient/profile/<int:patient_id>", methods=["GET"])
+def get_profile(patient_id):
+
+    patient = Patient.query.get(patient_id)
+
+    if not patient:
+        return jsonify({"message": "Patient not found"}), 404
+
+    user = patient.user
+
+    return jsonify({
+        "name": patient.name,
+        "email": user.email if user else None,
+        "age": patient.age,
+        "phone": patient.phone
+    })

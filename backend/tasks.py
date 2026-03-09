@@ -1,9 +1,37 @@
 from celery_worker import celery
+from datetime import date
 import csv
+import smtplib
+from email.mime.text import MIMEText
 
 from app import app
-from models import db, Appointment
+from models import db, Appointment, Doctor, Patient
 
+
+# -------------------------
+# EMAIL FUNCTION (MAILHOG)
+# -------------------------
+
+def send_email(to_email, subject, message):
+
+    msg = MIMEText(message)
+
+    msg["Subject"] = subject
+    msg["From"] = "hospital@test.com"
+    msg["To"] = to_email
+
+    # MailHog SMTP
+    server = smtplib.SMTP("localhost", 1025)
+
+    server.sendmail("hospital@test.com", [to_email], msg.as_string())
+
+    server.quit()
+
+
+
+# -------------------------
+# EXPORT CSV (ASYNC JOB)
+# -------------------------
 
 @celery.task
 def export_csv():
@@ -39,6 +67,11 @@ def export_csv():
     print("CSV Export Complete")
 
 
+
+# -------------------------
+# DAILY REMINDER
+# -------------------------
+
 @celery.task
 def daily_reminder():
 
@@ -46,22 +79,88 @@ def daily_reminder():
 
         print("Checking today's appointments")
 
-        appointments = Appointment.query.filter_by(status="booked").all()
+        today = date.today().isoformat()
+
+        appointments = Appointment.query.filter_by(
+            date=today,
+            status="booked"
+        ).all()
 
         for appt in appointments:
 
-            print(f"Reminder: Patient {appt.patient_id} visit today")
+            patient = Patient.query.get(appt.patient_id)
+            doctor = Doctor.query.get(appt.doctor_id)
 
+            if patient and patient.user:
+
+                email = patient.user.email
+
+                message = f"""
+Hospital Appointment Reminder
+
+Dear Patient,
+
+You have an appointment today.
+
+Doctor: {doctor.name}
+Date: {appt.date}
+Time: {appt.time}
+
+Please visit the hospital on time.
+
+Regards,
+Hospital Management System
+"""
+
+                send_email(
+                    email,
+                    "Hospital Appointment Reminder",
+                    message
+                )
+
+        print("Daily reminders sent")
+
+
+
+# -------------------------
+# MONTHLY DOCTOR REPORT
+# -------------------------
 
 @celery.task
 def monthly_doctor_report():
 
     with app.app_context():
 
-        print("Generating doctor monthly report")
+        print("Generating doctor monthly reports")
 
-        appointments = Appointment.query.all()
+        doctors = Doctor.query.all()
 
-        for appt in appointments:
+        for doctor in doctors:
 
-            print(f"Doctor {appt.doctor_id} handled appointment {appt.id}")
+            appointments = Appointment.query.filter_by(
+                doctor_id=doctor.id
+            ).all()
+
+            report = f"Monthly Report for {doctor.name}\n\n"
+
+            for appt in appointments:
+
+                report += f"""
+Appointment ID: {appt.id}
+Patient ID: {appt.patient_id}
+Date: {appt.date}
+Status: {appt.status}
+
+"""
+
+            if doctor.user:
+
+                email = doctor.user.email
+
+                send_email(
+                    email,
+                    "Monthly Hospital Activity Report",
+                    report
+                )
+
+        print("Monthly reports sent")

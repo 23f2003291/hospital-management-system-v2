@@ -64,6 +64,20 @@
 </div>
 
 <div class="mb-3">
+
+<label>Department</label>
+
+<select class="form-control" v-model="doctor.department_id">
+
+<option value="1">Cardiology</option>
+<option value="2">Oncology</option>
+<option value="3">General</option>
+
+</select>
+
+</div>
+
+<div class="mb-3">
 <label>Specialization</label>
 <input type="text" class="form-control" v-model="doctor.specialization" required>
 </div>
@@ -97,6 +111,7 @@ doctor:{
 username:"",
 email:"",
 password:"",
+department_id:"",
 specialization:""
 },
 
@@ -118,6 +133,7 @@ this.doctor = {
 username:"",
 email:"",
 password:"",
+department_id:"",
 specialization:""
 }
 

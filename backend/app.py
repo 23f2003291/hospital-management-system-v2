@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from models import db, User
+from models import db, User, Department
 from werkzeug.security import generate_password_hash
 from flask_cors import CORS
 
@@ -46,6 +46,24 @@ with app.app_context():
         db.session.commit()
 
         print("Admin created successfully")
+    
+    # -------------------------
+    # Create default departments
+    # -------------------------
+    if Department.query.count() == 0:
+
+        departments = [
+
+            Department(name="Cardiology", description="Heart related treatments"),
+            Department(name="Oncology", description="Cancer treatment"),
+            Department(name="General", description="General consultation")
+
+        ]
+
+        db.session.add_all(departments)
+        db.session.commit()
+
+        print("Departments created")
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,12 +1,29 @@
+# Python
 venv/
 __pycache__/
 *.pyc
+
+# Database
 *.db
 *.sqlite3
+
+# Environment
 .env
+
+# Flask instance folder
 instance/
+
+# Cache
 .cache/
-redis_dump.rdb
-celerybeat-schedule
+
+# Redis
+dump.rdb
+
+# Celery
+celerybeat-schedule*
+
+# Node
 node_modules/
-.csv
+
+# Generated exports
+*.csv

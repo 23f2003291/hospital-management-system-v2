@@ -35,6 +35,7 @@ def add_doctor():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
+    department_id = data.get("department_id")
     specialization = data.get("specialization")
 
     if not username or not email or not password or not specialization:
@@ -61,6 +62,7 @@ def add_doctor():
         user_id=new_user.id,
         name=username,
         specialization=specialization,
+        department_id=department_id,
         availability="Not set"
     )
 
@@ -123,6 +125,7 @@ def search_doctors():
             "id": d.id,
             "name": d.name,
             "specialization": d.specialization,
+            "department": d.department.name if d.department else None,
             "availability": d.availability
         })
 
@@ -181,6 +184,7 @@ def view_appointments():
         result.append({
             "appointment_id": a.id,
             "doctor_name": doctor.name if doctor else None,
+            "patient_id": a.patient_id,
             "patient_name": patient.name if patient else None,
             "date": a.date,
             "time": a.time,
@@ -202,10 +206,12 @@ def admin_patient_history(patient_id):
     for appt in appointments:
 
         treatment = Treatment.query.filter_by(appointment_id=appt.id).first()
+        doctor = Doctor.query.get(appt.doctor_id)
 
         history.append({
             "appointment_id": appt.id,
             "doctor_id": appt.doctor_id,
+            "doctor_name": doctor.name if doctor else None,
             "date": appt.date,
             "time": appt.time,
             "status": appt.status,

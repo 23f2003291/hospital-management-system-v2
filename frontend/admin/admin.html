@@ -65,6 +65,7 @@ v-model="search">
 <thead>
 <tr>
 <th>Name</th>
+<th>Department</th>
 <th>Specialization</th>
 <th>Availability</th>
 <th>Actions</th>
@@ -76,6 +77,7 @@ v-model="search">
 <tr v-for="doctor in doctors">
 
 <td>{{doctor.name}}</td>
+<td>{{doctor.department}}</td>
 <td>{{doctor.specialization}}</td>
 <td>{{doctor.availability}}</td>
 
@@ -255,23 +257,27 @@ this.appointments = res.data
 
 removeDoctor(id){
 
+if(confirm("Are you sure you want to remove the doctor?")){
+
 axios.delete("http://127.0.0.1:5000/admin/remove_doctor/"+id)
 
 .then(()=>{
 this.loadDoctors()
 })
-
+}
 },
 
 
 removePatient(id){
+
+if(confirm("Are you sure you want to removethe patient?")){
 
 axios.delete("http://127.0.0.1:5000/admin/remove_patient/"+id)
 
 .then(()=>{
 this.loadPatients()
 })
-
+}
 },
 
 
